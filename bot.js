@@ -251,10 +251,9 @@ async function handleTxid(conversation, ctx, tariff) {
     await ctx.reply('⏳ Проверяю транзакцию...');
 
     const { data: existed} = await supabase
-        .from('subscriptions')
-        .select('telegram_id')
+        .from('expired_txid')
+        .select('txid')
         .eq('txid', txid)
-        .single();
 
     if (existed) {
         await ctx.reply('❌ Этот TXID уже был использован ранее. Если вы оплатили один раз — не нужно нажимать повторно.');
@@ -336,9 +335,12 @@ async function handleTxid(conversation, ctx, tariff) {
                 .from('subscriptions')
                 .insert([{
                     telegram_id: ctx.from.id,
-                    txid,
                     expire_date: expireDate.toISOString()
                 }])
+
+            await supabase
+                .from('expired_txid')
+                .insert([{txid}])
         } else {
             await ctx.reply(
                 `❌ Транзакция не соответствует условиям: проверь адрес получателя и что сумма ≥ ${cost}.`, {

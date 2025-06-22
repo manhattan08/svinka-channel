@@ -60,7 +60,7 @@ cron.schedule('0 0 * * *', async () => {
         const now = new Date().toISOString()
         const { data: expired, error } = await supabase
             .from('subscriptions')
-            .select('telegram_id')
+            .select('id, telegram_id')
             .lt('expire_date', now)
 
         if (error) {
@@ -68,7 +68,7 @@ cron.schedule('0 0 * * *', async () => {
             return
         }
 
-        for (const { telegram_id } of expired) {
+        for (const { telegram_id, id } of expired) {
             try {
                 await bot.api.sendMessage(
                     telegram_id,
@@ -86,6 +86,7 @@ cron.schedule('0 0 * * *', async () => {
                     .from('subscriptions')
                     .delete()
                     .eq('telegram_id', telegram_id)
+                    .eq('id', id)
             } catch (kickError) {
                 console.error(`Error processing expired user ${telegram_id}:`, kickError)
             }

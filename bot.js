@@ -3,7 +3,7 @@ const {Bot, InlineKeyboard} = require('grammy')
 const {conversations, createConversation} = require("@grammyjs/conversations");
 const {TronWeb} = require('tronweb');
 const {post} = require("axios");
-const {supabase} = require("./server");
+const {supabase} = require("./supabase");
 
 const tronWeb = new TronWeb({fullHost: 'https://api.trongrid.io'});
 

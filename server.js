@@ -2,14 +2,9 @@ require('dotenv').config()
 const express = require('express')
 const { webhookCallback, InlineKeyboard} = require('grammy')
 const cors = require('cors')
-const { createClient } = require('@supabase/supabase-js')
 const cron = require('node-cron')
 const bot = require("./bot");
-
-const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY
-)
+const supabase = require("./supabase");
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -105,7 +100,3 @@ app.listen(PORT, async () => {
     await bot.api.setWebhook(webhookUrl)
     console.log(`Server + bot запущены на порту ${PORT}`)
 })
-
-module.exports = {
-    supabase
-}

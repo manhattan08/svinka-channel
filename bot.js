@@ -186,7 +186,7 @@ bot.callbackQuery('plan_3_card', async (ctx) => {
             }])
 
     } catch (err) {
-        await ctx.reply('Произошла ошибка, попробуйте позже.');
+        console.log(err)
     }
 });
 
@@ -226,7 +226,7 @@ bot.callbackQuery('plan_1_card', async (ctx) => {
             }])
 
     } catch (err) {
-        await ctx.reply('Произошла ошибка, попробуйте позже.');
+        console.log(err)
     }
 });
 

@@ -24,6 +24,8 @@ bot.command('start', async (ctx) => {
         .text('📖 Подробности о канале', 'about')
         .row()
         .text('📄 Оферта', 'offer')
+        .row()
+        .url('🛠 Поддержка', 'https://t.me/pipkasiska228')
 
     await ctx.reply(startText, {
         parse_mode: 'Markdown',
@@ -249,12 +251,10 @@ async function handleTxid(conversation, ctx, tariff) {
     await ctx.reply('⏳ Проверяю транзакцию...');
 
     const { data: existed} = await supabase
-        .from('transactions')
+        .from('subscriptions')
         .select('telegram_id')
         .eq('txid', txid)
         .single();
-
-    console.log(existed);
 
     if (existed) {
         await ctx.reply('❌ Этот TXID уже был использован ранее. Если вы оплатили один раз — не нужно нажимать повторно.');

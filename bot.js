@@ -159,6 +159,7 @@ bot.callbackQuery('plan_3_card', async (ctx) => {
                 email: "client@gmail.com",
                 offerId: process.env.LAVA_3_MONTH_OFFER_ID,
                 currency: "USD",
+                paymentMethod: "STRIPE"
             },
             {
                 headers: {
@@ -199,6 +200,7 @@ bot.callbackQuery('plan_1_card', async (ctx) => {
                 email: "client@gmail.com",
                 offerId: process.env.LAVA_1_MONTH_OFFER_ID,
                 currency: "USD",
+                paymentMethod: "STRIPE"
             },
             {
                 headers: {

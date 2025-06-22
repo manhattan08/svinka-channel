@@ -91,7 +91,7 @@ cron.schedule('0 0 * * *', async () => {
 
 app.listen(PORT, async () => {
     const webhookUrl = `${process.env.SERVER_URL}${secretPath}`
-    //await bot.api.setWebhook(webhookUrl)
+    await bot.api.setWebhook(webhookUrl)
     console.log(`Server + bot запущены на порту ${PORT}`)
 })
 

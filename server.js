@@ -19,7 +19,7 @@ app.post('/webhook', async (req, res) => {
     try{
         const {eventType, contractId} = req.body;
 
-        console.log('WEBHOOK BODY -\n' + JSON.stringify(req.body))
+        console.log('WEBHOOK BODY -\n' + JSON.stringify(...req.body))
 
         if(eventType !== 'payment.success') return res.status(200).json({success:false});
 

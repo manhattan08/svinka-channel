@@ -49,6 +49,10 @@ app.post('/webhook', async (req, res) => {
     return res.status(200).json({success:true});
 })
 
+app.get('/', (req, res) => {
+    res.status(200).json({ message: 'ALL RIGHT' });
+});
+
 cron.schedule('0 0 * * *', async () => {
     try {
         const now = new Date().toISOString()

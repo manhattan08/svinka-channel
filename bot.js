@@ -305,7 +305,7 @@ async function handleTxid(conversation, ctx, tariff) {
         } else if (contract.type === 'TransferContract') {
             const {to_address, amount: raw} = contract.parameter.value;
             const toAddress = tronWeb.address.fromHex(to_address);
-            amount = raw / 1e6;
+            amount = (raw / 1e6) / 3.8;
             recipientMatches = toAddress === process.env.CRYPTO_WALLET;
         } else {
             await ctx.reply('❌ Этот тип транзакции не поддерживается.');

@@ -49,8 +49,8 @@ app.post('/webhook', async (req, res) => {
     return res.status(200).json({success:true});
 })
 
-app.get('/', (req, res) => {
-    res.status(200).json({ message: 'ALL RIGHT' });
+app.get('/ping', (req, res) => {
+    res.status(200).json({ message: 'pong' });
 });
 
 cron.schedule('0 0 * * *', async () => {

@@ -238,8 +238,6 @@ bot.callbackQuery('check_3m', async (ctx) => {
     await ctx.conversation.enter('handleTxid', ctx);
 });
 
-bot.start()
-
 async function handleTxid(conversation, ctx, tariff) {
     await ctx.reply('💬 Введи TXID (хеш транзакции), которую только что отправил:');
 

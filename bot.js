@@ -254,6 +254,7 @@ async function handleTxid(conversation, ctx, tariff) {
         .from('expired_txid')
         .select('txid')
         .eq('txid', txid)
+        .single()
 
     if (existed) {
         await ctx.reply('❌ Этот TXID уже был использован ранее. Если вы оплатили один раз — не нужно нажимать повторно.');

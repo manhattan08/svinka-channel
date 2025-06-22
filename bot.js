@@ -310,6 +310,11 @@ async function handleTxid(conversation, ctx, tariff) {
             return;
         }
 
+        console.log('AMOUNT - ' + amount)
+        console.log('COST - ' + cost)
+        console.log('recipientMatches - ' + recipientMatches)
+        console.log('amount >= cost - ' + amount >= cost)
+
         if (recipientMatches && amount >= cost) {
             const invite = await bot.api.createChatInviteLink(process.env.PRIVATE_CHANNEL_ID, {
                 member_limit: 1,

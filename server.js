@@ -24,6 +24,8 @@ app.post('/webhook', async (req, res) => {
     try{
         const {eventType, contractId} = req.body;
 
+        console.log('WEBHOOK BODY -\n' + req.body)
+
         if(eventType !== 'payment.success') return res.status(200).json({success:false});
 
         const { data: subscription, error } = await supabase

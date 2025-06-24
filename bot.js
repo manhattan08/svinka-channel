@@ -204,7 +204,7 @@ bot.callbackQuery('plan_1_card_mir', async (ctx) => {
             'https://gate.lava.top/api/v2/invoice',
             {
                 email: "client@gmail.com",
-                offerId: process.env.LAVA_3_MONTH_OFFER_ID,
+                offerId: process.env.LAVA_1_MONTH_OFFER_ID,
                 currency: "RUB",
                 paymentMethod: "BANK131"
             },

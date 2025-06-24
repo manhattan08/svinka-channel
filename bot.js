@@ -123,6 +123,8 @@ bot.callbackQuery('plan_1', async (ctx) => {
             .text('💸 Криптовалюта (TRC-20)', 'plan_1_trc')
             .row()
             .text('💳 Банковская карта', 'plan_1_card')
+            .row()
+            .text('💳 Банковская карта «МИР»', 'plan_1_card_mir')
     })
 })
 
@@ -133,6 +135,8 @@ bot.callbackQuery('plan_3', async (ctx) => {
             .text('💸 Криптовалюта (TRC-20)', 'plan_3_trc')
             .row()
             .text('💳 Банковская карта', 'plan_3_card')
+            .row()
+            .text('💳 Банковская карта «МИР»', 'plan_3_card_mir')
     })
 })
 
@@ -161,6 +165,88 @@ bot.callbackQuery('plan_3_card', async (ctx) => {
                 email: "client@gmail.com",
                 offerId: process.env.LAVA_3_MONTH_OFFER_ID,
                 currency: "USD",
+                paymentMethod: "STRIPE"
+            },
+            {
+                headers: {
+                    'X-Api-Key': process.env.LAVA_API_KEY,
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        const {paymentUrl, id: paymentId} = response.data;
+
+        await ctx.reply('Нажмите, чтобы оплатить(как только транзакция будет успешной, я пришлю ссылку на канал):', {
+            reply_markup: new InlineKeyboard().webApp("💳 Оплатить сейчас", {url: paymentUrl})
+        });
+
+        const expireDate = new Date()
+        expireDate.setMonth(expireDate.getMonth() + 3)
+
+        await supabase
+            .from('subscriptions')
+            .insert([{
+                telegram_id: ctx.from.id,
+                expire_date: expireDate.toISOString(),
+                payment_id: paymentId
+            }])
+
+    } catch (err) {
+        console.log(err)
+    }
+});
+
+bot.callbackQuery('plan_1_card_mir', async (ctx) => {
+    try {
+        await ctx.reply('⏳ Генерируем ссылку для оплаты...')
+        const response = await post(
+            'https://gate.lava.top/api/v2/invoice',
+            {
+                email: "client@gmail.com",
+                offerId: process.env.LAVA_3_MONTH_OFFER_ID,
+                currency: "RUB",
+                paymentMethod: "STRIPE"
+            },
+            {
+                headers: {
+                    'X-Api-Key': process.env.LAVA_API_KEY,
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        const {paymentUrl, id: paymentId} = response.data;
+
+        await ctx.reply('Нажмите, чтобы оплатить(как только транзакция будет успешной, я пришлю ссылку на канал):', {
+            reply_markup: new InlineKeyboard().webApp("💳 Оплатить сейчас", {url: paymentUrl})
+        });
+
+        const expireDate = new Date()
+        expireDate.setMonth(expireDate.getMonth() + 3)
+
+        await supabase
+            .from('subscriptions')
+            .insert([{
+                telegram_id: ctx.from.id,
+                expire_date: expireDate.toISOString(),
+                payment_id: paymentId
+            }])
+
+    } catch (err) {
+        console.log(err)
+    }
+});
+
+bot.callbackQuery('plan_3_card_mir', async (ctx) => {
+    try {
+        await ctx.reply('⏳ Генерируем ссылку для оплаты...')
+        const response = await post(
+            'https://gate.lava.top/api/v2/invoice',
+            {
+                email: "client@gmail.com",
+                offerId: process.env.LAVA_3_MONTH_OFFER_ID,
+                currency: "RUB",
                 paymentMethod: "STRIPE"
             },
             {

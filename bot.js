@@ -425,6 +425,7 @@ async function handleTxid(conversation, ctx, tariff) {
                 .from('subscriptions')
                 .insert([{
                     telegram_id: ctx.from.id,
+                    status:'paid',
                     expire_date: expireDate.toISOString()
                 }])
 

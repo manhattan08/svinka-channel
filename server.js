@@ -42,6 +42,11 @@ app.post('/webhook', async (req, res) => {
             `✅ Оплата подтверждена! Вот твоя *одноразовая ссылка*:\n\n ${invite.invite_link}`,{parse_mode:'Markdown'}
         )
 
+        await supabase
+            .from('subscriptions')
+            .update({ status: 'paid' })
+            .eq('payment_id', contractId)
+
         return res.status(200).json({success:true});
     } catch (e) {
         console.log(e)

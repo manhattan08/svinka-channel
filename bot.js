@@ -395,6 +395,26 @@ async function handleTxid(conversation, ctx, tariff) {
             amount = Number(rawAmount) / 10 ** decimals;
 
             recipientMatches = toAddress === process.env.CRYPTO_WALLET;
+        }
+
+        if (contract.type === 'TriggerSmartContract') {
+            const { data } = contract.parameter.value;
+
+            if (data.slice(0, 8) !== 'a9059cbb') {
+                await ctx.reply('❌ Это не вызов transfer у TRC-20 токена.');
+                return;
+            }
+
+            const param1 = data.slice(8, 8 + 64);
+            const addr20 = param1.slice(24);
+            const toHexAddr = '41' + addr20;
+            const toAddressB58 = tronWeb.address.fromHex(toHexAddr);
+
+            const amountHex = data.slice(8 + 64, 8 + 64 + 64);
+            const rawAmount = BigInt('0x' + amountHex);
+            amount = Number(rawAmount) / 1e6;
+
+            recipientMatches = toAddressB58 === 'TGLJgj1ahHWkL6rSh12EXCg3uWdfGmpcPV' || toAddressB58 === process.env.CRYPTO_WALLET;
         } else if (contract.type === 'TransferContract') {
             const {to_address, amount: raw} = contract.parameter.value;
             const toAddress = tronWeb.address.fromHex(to_address);
@@ -426,6 +446,7 @@ async function handleTxid(conversation, ctx, tariff) {
                 .insert([{
                     telegram_id: ctx.from.id,
                     status:'paid',
+                    invite_link:invite.invite_link,
                     expire_date: expireDate.toISOString()
                 }])
 

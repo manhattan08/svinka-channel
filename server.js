@@ -44,7 +44,7 @@ app.post('/webhook', async (req, res) => {
 
         await supabase
             .from('subscriptions')
-            .update({ status: 'paid' })
+            .update({ status: 'paid', invite_link:invite.invite_link})
             .eq('payment_id', contractId)
 
         return res.status(200).json({success:true});

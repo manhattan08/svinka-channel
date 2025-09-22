@@ -188,6 +188,7 @@ bot.callbackQuery('plan_3_card', async (ctx) => {
             .from('subscriptions')
             .insert([{
                 telegram_id: ctx.from.id,
+                username: ctx.from.username ?? null,
                 expire_date: expireDate.toISOString(),
                 payment_id: paymentId
             }])
@@ -229,6 +230,7 @@ bot.callbackQuery('plan_1_card_mir', async (ctx) => {
             .from('subscriptions')
             .insert([{
                 telegram_id: ctx.from.id,
+                username: ctx.from.username ?? null,
                 expire_date: expireDate.toISOString(),
                 payment_id: paymentId
             }])
@@ -270,6 +272,7 @@ bot.callbackQuery('plan_3_card_mir', async (ctx) => {
             .from('subscriptions')
             .insert([{
                 telegram_id: ctx.from.id,
+                username: ctx.from.username ?? null,
                 expire_date: expireDate.toISOString(),
                 payment_id: paymentId
             }])
@@ -311,6 +314,7 @@ bot.callbackQuery('plan_1_card', async (ctx) => {
             .from('subscriptions')
             .insert([{
                 telegram_id: ctx.from.id,
+                username: ctx.from.username ?? null,
                 expire_date: expireDate.toISOString(),
                 payment_id: paymentId
             }])
@@ -446,6 +450,7 @@ async function handleTxid(conversation, ctx, tariff) {
                 .insert([{
                     telegram_id: ctx.from.id,
                     status:'paid',
+                    username: ctx.from.username ?? null,
                     invite_link:invite.invite_link,
                     expire_date: expireDate.toISOString()
                 }])

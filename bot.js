@@ -184,8 +184,6 @@ bot.callbackQuery('plan_3_card', async (ctx) => {
         const expireDate = new Date()
         expireDate.setMonth(expireDate.getMonth() + 3)
 
-        console.log(ctx.from)
-
         await supabase
             .from('subscriptions')
             .insert([{
@@ -430,9 +428,6 @@ async function handleTxid(conversation, ctx, tariff) {
             await ctx.reply('❌ Этот тип транзакции не поддерживается.');
             return;
         }
-
-        console.log('AMOUNT - ' + amount)
-        console.log('COST - ' + cost)
 
         if (recipientMatches && amount >= cost) {
             const invite = await bot.api.createChatInviteLink(process.env.PRIVATE_CHANNEL_ID, {

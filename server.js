@@ -60,27 +60,38 @@ app.get('/ping', (req, res) => {
 
 cron.schedule('0 0 * * *', async () => {
     try {
-        const now = new Date().toISOString()
+        const now = new Date().toISOString();
         const { data: expired, error } = await supabase
             .from('subscriptions')
-            .select('id, telegram_id')
-            .lt('expire_date', now)
+            .select('id, telegram_id, status')
+            .lt('expire_date', now);
 
         if (error) {
-            console.error('Error fetching expired subscriptions:', error)
-            return
+            console.error('Error fetching expired subscriptions:', error);
+            return;
+        }
+        if (!expired || expired.length === 0) return;
+
+        const paidExpired = expired.filter(r => r.status === 'paid');
+        const toPurgeIds  = expired.filter(r => r.status !== 'paid').map(r => r.id);
+
+        if (toPurgeIds.length) {
+             await supabase
+                .from('subscriptions')
+                .delete()
+                .in('id', toPurgeIds);
         }
 
-        for (const { telegram_id, id } of expired) {
+        for (const { telegram_id, id } of paidExpired) {
             try {
                 await bot.api.sendMessage(
                     telegram_id,
                     'Ваша подписка закончилась',
                     {
                         reply_markup: new InlineKeyboard()
-                            .text('📝 Оформить подписку', 'subscribe')
+                            .text('📝 Оформить подписку', 'subscribe'),
                     }
-                )
+                );
 
                 await bot.api.banChatMember(process.env.PRIVATE_CHANNEL_ID, telegram_id)
                 await bot.api.unbanChatMember(process.env.PRIVATE_CHANNEL_ID, telegram_id)
@@ -88,16 +99,15 @@ cron.schedule('0 0 * * *', async () => {
                 await supabase
                     .from('subscriptions')
                     .delete()
-                    .eq('telegram_id', telegram_id)
-                    .eq('id', id)
+                    .eq('id', id);
             } catch (kickError) {
-                console.error(`Error processing expired user ${telegram_id}:`, kickError)
+                console.error(`Error processing expired paid user ${telegram_id}:`, kickError);
             }
         }
     } catch (err) {
-        console.error('Cron job failed:', err)
+        console.error('Cron job failed:', err);
     }
-})
+});
 
 app.listen(PORT, async () => {
     const webhookUrl = `${process.env.SERVER_URL}${secretPath}`

@@ -184,6 +184,8 @@ bot.callbackQuery('plan_3_card', async (ctx) => {
         const expireDate = new Date()
         expireDate.setMonth(expireDate.getMonth() + 3)
 
+        console.log(ctx.from)
+
         await supabase
             .from('subscriptions')
             .insert([{

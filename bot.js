@@ -224,7 +224,7 @@ bot.callbackQuery('plan_1_card_mir', async (ctx) => {
         });
 
         const expireDate = new Date()
-        expireDate.setMonth(expireDate.getMonth() + 3)
+        expireDate.setMonth(expireDate.getMonth() + 1)
 
         await supabase
             .from('subscriptions')

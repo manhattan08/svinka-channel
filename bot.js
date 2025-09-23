@@ -440,7 +440,8 @@ async function handleTxid(conversation, ctx, tariff) {
             );
 
             const expireDate = new Date()
-            expireDate.setMonth(expireDate.getMonth() + tariff.match === 'check_1m' ? 1 : 3)
+            const month = tariff.match === 'check_1m' ? 1 : 3;
+            expireDate.setMonth(expireDate.getMonth() + month)
 
             await supabase
                 .from('subscriptions')

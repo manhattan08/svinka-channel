@@ -58,13 +58,16 @@ app.get('/ping', (req, res) => {
     res.status(200).json({ message: 'pong' });
 });
 
-cron.schedule('0 0 * * *', async () => {
+// cron.schedule('0 0 * * *', async () => {
+cron.schedule('* * * * *', async () => {
     try {
         const now = new Date().toISOString();
         const { data: expired, error } = await supabase
             .from('subscriptions')
             .select('id, telegram_id, status')
             .lt('expire_date', now);
+
+        console.log(expired)
 
         if (error) {
             console.error('Error fetching expired subscriptions:', error);
@@ -84,26 +87,30 @@ cron.schedule('0 0 * * *', async () => {
 
         for (const { telegram_id, id } of paidExpired) {
             try {
-                await bot.api.sendMessage(
-                    telegram_id,
-                    'Ваша подписка закончилась',
-                    {
-                        reply_markup: new InlineKeyboard()
-                            .text('📝 Оформить подписку', 'subscribe'),
-                    }
-                );
-
-                await bot.api.banChatMember(process.env.PRIVATE_CHANNEL_ID, telegram_id)
-                await bot.api.unbanChatMember(process.env.PRIVATE_CHANNEL_ID, telegram_id)
-
-                await supabase
-                    .from('subscriptions')
-                    .delete()
-                    .eq('id', id);
+                console.log(telegram_id)
+                console.log(id)
+                // await bot.api.sendMessage(
+                //     telegram_id,
+                //     'Ваша подписка закончилась',
+                //     {
+                //         reply_markup: new InlineKeyboard()
+                //             .text('📝 Оформить подписку', 'subscribe'),
+                //     }
+                // );
+                //
+                // await bot.api.banChatMember(process.env.PRIVATE_CHANNEL_ID, telegram_id)
+                // await bot.api.unbanChatMember(process.env.PRIVATE_CHANNEL_ID, telegram_id)
+                //
+                // await supabase
+                //     .from('subscriptions')
+                //     .delete()
+                //     .eq('id', id);
             } catch (kickError) {
                 console.error(`Error processing expired paid user ${telegram_id}:`, kickError);
             }
         }
+
+        console.log('Kicked users - ' + paidExpired.length);
     } catch (err) {
         console.error('Cron job failed:', err);
     }

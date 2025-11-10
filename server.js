@@ -58,8 +58,7 @@ app.get('/ping', (req, res) => {
     res.status(200).json({ message: 'pong' });
 });
 
-// cron.schedule('0 */12 * * *', async () => {
-cron.schedule('* * * * *', async () => {
+cron.schedule('0 */12 * * *', async () => {
     try {
         const now = new Date().toISOString();
         const { data: expired, error } = await supabase

@@ -179,6 +179,7 @@ bot.callbackQuery('plan_3_card', async (ctx) => {
         months: 3,
         offerId: process.env.LAVA_3_MONTH_OFFER_ID,
         currency: 'USD',
+        paymentMethod: 'STRIPE'
     });
 });
 

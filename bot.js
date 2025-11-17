@@ -174,8 +174,7 @@ bot.callbackQuery('plan_ru_1_card', async (ctx) => {
     await ctx.conversation.enter('collectEmail', {
         months: 1,
         offerId: process.env.LAVA_1_MONTH_OFFER_ID,
-        currency: 'RUB',
-        paymentMethod: 'STRIPE'
+        currency: 'RUB'
     });
 });
 
@@ -184,7 +183,6 @@ bot.callbackQuery('plan_3_card', async (ctx) => {
         months: 3,
         offerId: process.env.LAVA_3_MONTH_OFFER_ID,
         currency: 'USD',
-        paymentMethod: 'STRIPE'
     });
 });
 
@@ -552,7 +550,7 @@ async function collectEmail(conversation, ctx, opts) {
                 email,
                 offerId: opts.offerId,
                 currency: opts.currency,
-                paymentMethod: opts.paymentMethod
+                paymentMethod: opts?.paymentMethod
             },
             {
                 headers: {

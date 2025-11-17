@@ -125,6 +125,8 @@ bot.callbackQuery('plan_1', async (ctx) => {
             .row()
             .text('💳 Банковская карта', 'plan_1_card')
             .row()
+            .text('💳 Банковская карта(Россия)', 'plan_ru_1_card')
+            .row()
             .text('💳 Банковская карта «МИР»', 'plan_1_card_mir')
     })
 })
@@ -136,6 +138,8 @@ bot.callbackQuery('plan_3', async (ctx) => {
             .text('💸 Криптовалюта (TRC-20)', 'plan_3_trc')
             .row()
             .text('💳 Банковская карта', 'plan_3_card')
+            .row()
+            .text('💳 Банковская карта(Россия)', 'plan_ru_3_card')
             .row()
             .text('💳 Банковская карта «МИР»', 'plan_3_card_mir')
     })
@@ -166,11 +170,29 @@ bot.callbackQuery('plan_1_card', async (ctx) => {
     });
 });
 
+bot.callbackQuery('plan_ru_1_card', async (ctx) => {
+    await ctx.conversation.enter('collectEmail', {
+        months: 1,
+        offerId: process.env.LAVA_1_MONTH_OFFER_ID,
+        currency: 'RUB',
+        paymentMethod: 'STRIPE'
+    });
+});
+
 bot.callbackQuery('plan_3_card', async (ctx) => {
     await ctx.conversation.enter('collectEmail', {
         months: 3,
         offerId: process.env.LAVA_3_MONTH_OFFER_ID,
         currency: 'USD',
+        paymentMethod: 'STRIPE'
+    });
+});
+
+bot.callbackQuery('plan_ru_3_card', async (ctx) => {
+    await ctx.conversation.enter('collectEmail', {
+        months: 3,
+        offerId: process.env.LAVA_3_MONTH_OFFER_ID,
+        currency: 'RUB',
         paymentMethod: 'STRIPE'
     });
 });

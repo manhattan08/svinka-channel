@@ -84,14 +84,16 @@ cron.schedule('0 */12 * * *', async () => {
 
         for (const { telegram_id, id } of paidExpired) {
             try {
-                await bot.api.sendMessage(
-                    telegram_id,
-                    'Ваша подписка закончилась',
-                    {
-                        reply_markup: new InlineKeyboard()
-                            .text('📝 Оформить подписку', 'subscribe'),
-                    }
-                );
+                try {
+                    await bot.api.sendMessage(
+                        telegram_id,
+                        'Ваша подписка закончилась',
+                        {
+                            reply_markup: new InlineKeyboard()
+                                .text('📝 Оформить подписку', 'subscribe'),
+                        }
+                    );
+                } catch (e){}
 
                 await bot.api.banChatMember(process.env.PRIVATE_CHANNEL_ID, telegram_id)
                 await bot.api.unbanChatMember(process.env.PRIVATE_CHANNEL_ID, telegram_id)

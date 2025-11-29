@@ -510,6 +510,17 @@ async function handleTxid(conversation, ctx, tariff) {
             await supabase
                 .from('expired_txid')
                 .insert([{txid}])
+
+            setTimeout(async () => {
+                try {
+                    await bot.api.revokeChatInviteLink(
+                        process.env.PRIVATE_CHANNEL_ID,
+                        invite.invite_link
+                    )
+                } catch (err) {
+                    console.error('Revoke failed:', err)
+                }
+            }, 15 * 1000)
         } else {
             await ctx.reply(
                 `❌ Транзакция не соответствует условиям: проверь адрес получателя и что сумма ≥ ${cost}.`, {

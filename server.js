@@ -47,6 +47,17 @@ app.post('/webhook', async (req, res) => {
             .update({ status: 'paid', invite_link:invite.invite_link})
             .eq('payment_id', contractId)
 
+        setTimeout(async () => {
+            try {
+                await bot.api.revokeChatInviteLink(
+                    process.env.PRIVATE_CHANNEL_ID,
+                    invite.invite_link
+                )
+            } catch (err) {
+                console.error('Revoke failed:', err)
+            }
+        }, 15 * 1000)
+
         return res.status(200).json({success:true});
     } catch (e) {
         console.log(e)

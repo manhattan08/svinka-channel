@@ -56,7 +56,7 @@ app.post('/webhook', async (req, res) => {
             } catch (err) {
                 console.error('Revoke failed:', err)
             }
-        }, 15 * 1000)
+        }, 30 * 1000)
 
         return res.status(200).json({success:true});
     } catch (e) {
@@ -64,6 +64,58 @@ app.post('/webhook', async (req, res) => {
         return res.status(500).json({success:false});
     }
 })
+
+app.post('/webhook/tribute', async (req, res) => {
+    console.log('TRIBUTE YES')
+    // try{
+    //     const {eventType, contractId} = req.body;
+    //
+    //     if(eventType !== 'payment.success') return res.status(200).json({success:false});
+    //
+    //     const { data: subscription, error } = await supabase
+    //         .from('subscriptions')
+    //         .select('telegram_id')
+    //         .eq('payment_id', contractId)
+    //         .single()
+    //
+    //     if (error || !subscription) {
+    //         console.error('Subscription not found or Supabase error:', error)
+    //         return res.status(404).json({ success: false, error: 'Subscription not found' })
+    //     }
+    //
+    //     const invite = await bot.api.createChatInviteLink(process.env.PRIVATE_CHANNEL_ID, {
+    //         member_limit: 1,
+    //         creates_join_request: false,
+    //     })
+    //
+    //     await bot.api.sendMessage(
+    //         subscription.telegram_id,
+    //         `✅ Оплата подтверждена! Вот твоя *одноразовая ссылка*:\n\n ${invite.invite_link}`,{parse_mode:'Markdown'}
+    //     )
+    //
+    //     await supabase
+    //         .from('subscriptions')
+    //         .update({ status: 'paid', invite_link:invite.invite_link})
+    //         .eq('payment_id', contractId)
+    //
+    //     setTimeout(async () => {
+    //         try {
+    //             await bot.api.revokeChatInviteLink(
+    //                 process.env.PRIVATE_CHANNEL_ID,
+    //                 invite.invite_link
+    //             )
+    //         } catch (err) {
+    //             console.error('Revoke failed:', err)
+    //         }
+    //     }, 30 * 1000)
+    //
+    //     return res.status(200).json({success:true});
+    // } catch (e) {
+    //     console.log(e)
+    //     return res.status(500).json({success:false});
+    // }
+})
+
 
 app.get('/ping', (req, res) => {
     res.status(200).json({ message: 'pong' });

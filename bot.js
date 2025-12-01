@@ -520,7 +520,7 @@ async function handleTxid(conversation, ctx, tariff) {
                 } catch (err) {
                     console.error('Revoke failed:', err)
                 }
-            }, 15 * 1000)
+            }, 30 * 1000)
         } else {
             await ctx.reply(
                 `❌ Транзакция не соответствует условиям: проверь адрес получателя и что сумма ≥ ${cost}.`, {

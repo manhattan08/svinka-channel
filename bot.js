@@ -114,6 +114,8 @@ bot.callbackQuery('subscribe', async (ctx) => {
             .text('1 месяц', 'plan_1')
             .row()
             .text('3 месяца', 'plan_3')
+            .row()
+            .url('💳 Оплата картой (Tribute)', 'https://t.me/tribute/app?startapp=sHgt')
     })
 })
 

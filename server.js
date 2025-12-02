@@ -86,17 +86,26 @@ app.post('/webhook/tribute', async (req, res) => {
         //     `✅ Оплата подтверждена! Вот твоя *одноразовая ссылка*:\n\n ${invite.invite_link}`, {parse_mode: 'Markdown'}
         // )
 
-        const { data: lastSub, error: findError } = await supabase
+        const { data: lastSub } = await supabase
             .from('subscriptions')
             .select('id')
             .eq('telegram_id', telegram_user_id)
             .order('id', { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle();
 
-        if (findError || !lastSub) {
-            console.log('subscription not found');
-            return res.status(404).json({ success: false });
+        if (!lastSub) {
+            await supabase
+                .from('subscriptions')
+                .insert([{
+                    telegram_id: telegram_user_id,
+                    status: 'paid',
+                    username: null,
+                    invite_link: null,
+                    expire_date: null
+                }]);
+
+            return res.status(200).json({ success: true, created: true });
         }
 
         await supabase

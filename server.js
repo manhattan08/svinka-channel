@@ -73,6 +73,7 @@ app.post('/webhook/tribute', async (req, res) => {
         const {name, payload} = req.body;
 
         if (name === 'new_subscription') {
+            console.log('NEW USER')
             const {telegram_user_id, expires_at} = payload;
 
             // const invite = await bot.api.createChatInviteLink(process.env.PRIVATE_CHANNEL_ID, {
@@ -85,34 +86,20 @@ app.post('/webhook/tribute', async (req, res) => {
             //     `✅ Оплата подтверждена! Вот твоя *одноразовая ссылка*:\n\n ${invite.invite_link}`, {parse_mode: 'Markdown'}
             // )
 
-            const { data: lastSub } = await supabase
-                .from('subscriptions')
-                .select('id')
-                .eq('telegram_id', telegram_user_id)
-                .order('id', { ascending: false })
-                .limit(1)
-                .maybeSingle();
-
-            if (!lastSub) {
-                await supabase
-                    .from('subscriptions')
-                    .insert([{
-                        telegram_id: telegram_user_id,
-                        status: 'paid',
-                        username: null,
-                        invite_link: null,
-                        expire_date: new Date(expires_at)
-                    }]);
-
-                return res.status(200).json({ success: true, created: true });
-            }
-
             await supabase
                 .from('subscriptions')
-                .update({ status: 'paid', expires_date: new Date(expires_at) })
-                .eq('id', lastSub.id);
-        }
-        else if(name === 'cancelled_subscription'){
+                .insert([{
+                    telegram_id: telegram_user_id,
+                    status: 'paid',
+                    username: null,
+                    invite_link: null,
+                    expire_date: new Date(expires_at)
+                }]);
+
+            return res.status(200).json({success: true, created: true});
+
+
+        } else if (name === 'cancelled_subscription') {
             try {
                 const {telegram_user_id} = payload;
 
@@ -140,7 +127,7 @@ app.post('/webhook/tribute', async (req, res) => {
             }
         }
 
-        return res.status(200).json({success:true});
+        return res.status(200).json({success: true});
     } catch (e) {
         console.log(e)
         return res.status(500).json({success: false});

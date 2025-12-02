@@ -72,46 +72,73 @@ app.post('/webhook/tribute', async (req, res) => {
     try {
         const {name, payload} = req.body;
 
-        if (name !== 'new_subscription') return res.status(200).json({success: false});
+        if (name === 'new_subscription') {
+            const {telegram_user_id, expires_at} = payload;
 
-        const {telegram_user_id, expires_at} = payload;
+            // const invite = await bot.api.createChatInviteLink(process.env.PRIVATE_CHANNEL_ID, {
+            //     member_limit: 1,
+            //     creates_join_request: false,
+            // })
+            //
+            // await bot.api.sendMessage(
+            //     telegram_user_id,
+            //     `✅ Оплата подтверждена! Вот твоя *одноразовая ссылка*:\n\n ${invite.invite_link}`, {parse_mode: 'Markdown'}
+            // )
 
-        // const invite = await bot.api.createChatInviteLink(process.env.PRIVATE_CHANNEL_ID, {
-        //     member_limit: 1,
-        //     creates_join_request: false,
-        // })
-        //
-        // await bot.api.sendMessage(
-        //     telegram_user_id,
-        //     `✅ Оплата подтверждена! Вот твоя *одноразовая ссылка*:\n\n ${invite.invite_link}`, {parse_mode: 'Markdown'}
-        // )
+            const { data: lastSub } = await supabase
+                .from('subscriptions')
+                .select('id')
+                .eq('telegram_id', telegram_user_id)
+                .order('id', { ascending: false })
+                .limit(1)
+                .maybeSingle();
 
-        const { data: lastSub } = await supabase
-            .from('subscriptions')
-            .select('id')
-            .eq('telegram_id', telegram_user_id)
-            .order('id', { ascending: false })
-            .limit(1)
-            .maybeSingle();
+            if (!lastSub) {
+                await supabase
+                    .from('subscriptions')
+                    .insert([{
+                        telegram_id: telegram_user_id,
+                        status: 'paid',
+                        username: null,
+                        invite_link: null,
+                        expire_date: new Date(expires_at)
+                    }]);
 
-        if (!lastSub) {
+                return res.status(200).json({ success: true, created: true });
+            }
+
             await supabase
                 .from('subscriptions')
-                .insert([{
-                    telegram_id: telegram_user_id,
-                    status: 'paid',
-                    username: null,
-                    invite_link: null,
-                    expire_date: new Date(expires_at)
-                }]);
-
-            return res.status(200).json({ success: true, created: true });
+                .update({ status: 'paid', expires_date: new Date(expires_at) })
+                .eq('id', lastSub.id);
         }
+        else if(name === 'cancelled_subscription'){
+            try {
+                const {telegram_user_id} = payload;
 
-        await supabase
-            .from('subscriptions')
-            .update({ status: 'paid', expires_date: new Date(expires_at) })
-            .eq('id', lastSub.id);
+                try {
+                    await bot.api.sendMessage(
+                        telegram_user_id,
+                        'Ваша подписка закончилась',
+                        {
+                            reply_markup: new InlineKeyboard()
+                                .text('📝 Оформить подписку', 'subscribe'),
+                        }
+                    );
+                } catch (e) {
+                }
+
+                await bot.api.banChatMember(process.env.PRIVATE_CHANNEL_ID, telegram_user_id)
+                await bot.api.unbanChatMember(process.env.PRIVATE_CHANNEL_ID, telegram_user_id)
+
+                await supabase
+                    .from('subscriptions')
+                    .delete()
+                    .eq('telegram_id', telegram_user_id);
+            } catch (kickError) {
+                console.error(`Error processing expired paid user:`, kickError);
+            }
+        }
 
         return res.status(200).json({success:true});
     } catch (e) {

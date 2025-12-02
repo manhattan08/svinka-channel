@@ -214,7 +214,7 @@ bot.callbackQuery('plan_3_card_mir', async (ctx) => {
 bot.callbackQuery('plan_6_card_mir', async (ctx) => {
     await ctx.conversation.enter('collectEmail', {
         months: 6,
-        offerId: process.env.LAVA_3_MONTH_OFFER_ID,
+        offerId: '335c2f4e-8c02-4f70-89b1-8be9c35cff15',
         currency: 'RUB',
         paymentMethod: 'BANK131'
     });
@@ -223,7 +223,7 @@ bot.callbackQuery('plan_6_card_mir', async (ctx) => {
 bot.callbackQuery('plan_infinity_card_mir', async (ctx) => {
     await ctx.conversation.enter('collectEmail', {
         months: 999,
-        offerId: process.env.LAVA_3_MONTH_OFFER_ID,
+        offerId: '1ede7ac2-c3e2-4f96-a1f1-4ba848b4c583',
         currency: 'RUB',
         paymentMethod: 'BANK131'
     });

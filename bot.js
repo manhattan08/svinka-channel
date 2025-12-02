@@ -103,45 +103,63 @@ bot.callbackQuery('offer', async (ctx) => {
 })
 
 bot.callbackQuery('subscribe', async (ctx) => {
-    await ctx.reply(`📦 Подписка может быть оформлена на *1 месяц* или на *3 месяца*:
+    await ctx.reply(`📦 Подписка может быть оформлена на:
 
 1 месяц — *${process.env.PRICE_1_MONTH}$*
 3 месяца — *${process.env.PRICE_3_MONTH}$*
+6 месяцев - *50$*
+Навсегда - *150$*
 
 Вся валюта автоматически *конвертируется*`, {
         parse_mode: 'Markdown',
-        reply_markup: new InlineKeyboard()
-            .text('1 месяц', 'plan_1')
+        reply_markup:  new InlineKeyboard()
+            .text('💸 Криптовалюта (TRC-20)', 'pay_trc')
             .row()
-            .text('3 месяца', 'plan_3')
+            .url(
+                '💳 Банковская карта',
+                'https://t.me/tribute/app?startapp=sHgt'
+            )
             .row()
-            .url('💳 Оплата картой (Tribute)', 'https://t.me/tribute/app?startapp=sHgt')
+            .text('💳 Банковская карта «МИР»', 'pay_card_mir')
     })
 })
 
-bot.callbackQuery('plan_1', async (ctx) => {
-    await ctx.reply(`Ты выбрал подписку на *месяц*\n\nТеперь выбери способ оплаты:`, {
-        parse_mode: 'Markdown',
-        reply_markup: new InlineKeyboard()
-            .text('💸 Криптовалюта (TRC-20)', 'plan_1_trc')
-            .row()
-            .text('💳 Банковская карта', 'plan_1_card')
-            .row()
-            .text('💳 Банковская карта «МИР»', 'plan_1_card_mir')
-    })
-})
+bot.callbackQuery('pay_trc', async (ctx) => {
+    await ctx.reply(
+        `Ты выбрал оплату в USDT (TRC-20).
 
-bot.callbackQuery('plan_3', async (ctx) => {
-    await ctx.reply(`Ты выбрал подписку на *3 месяца*\n\nТеперь выбери способ оплаты:`, {
-        parse_mode: 'Markdown',
-        reply_markup: new InlineKeyboard()
-            .text('💸 Криптовалюта (TRC-20)', 'plan_3_trc')
-            .row()
-            .text('💳 Банковская карта', 'plan_3_card')
-            .row()
-            .text('💳 Банковская карта «МИР»', 'plan_3_card_mir')
-    })
-})
+Теперь выбери срок подписки:`,
+        {
+            reply_markup: new InlineKeyboard()
+                .text('1 месяц', 'plan_1_trc')
+                .row()
+                .text('3 месяца', 'plan_3_trc')
+                .row()
+                .text('6 месяцев', 'plan_6_trc')
+                .row()
+                .text('Навсегда', 'plan_infinity_trc')
+        }
+    );
+});
+
+bot.callbackQuery('pay_card_mir', async (ctx) => {
+    await ctx.reply(
+        `Ты выбрал оплату банковской картой «МИР».
+
+Теперь выбери срок подписки:`,
+        {
+            reply_markup: new InlineKeyboard()
+                .text('1 месяц', 'plan_1_card_mir')
+                .row()
+                .text('3 месяца', 'plan_3_card_mir')
+                .row()
+                .text('6 месяцев', 'plan_6_card_mir')
+                .row()
+                .text('Навсегда', 'plan_infinity_card_mir')
+        }
+    );
+});
+
 
 bot.callbackQuery('plan_1_trc', async (ctx) => {
     await ctx.reply(`📌 Отправь *${process.env.PRICE_1_MONTH} USDT* в сети *TRC-20* (блокчейн *TRON*) по следующему номеру кошелька:\n\n\`${process.env.CRYPTO_WALLET}\`\n
@@ -159,40 +177,21 @@ bot.callbackQuery('plan_3_trc', async (ctx) => {
     })
 })
 
-bot.callbackQuery('plan_1_card', async (ctx) => {
-    await ctx.conversation.enter('collectEmail', {
-        months: 1,
-        offerId: process.env.LAVA_1_MONTH_OFFER_ID,
-        currency: 'USD',
-        paymentMethod: 'STRIPE'
-    });
-});
+bot.callbackQuery('plan_6_trc', async (ctx) => {
+    await ctx.reply(`📌 Отправь *50 USDT* в сети *TRC-20* (блокчейн *TRON*) по следующему номеру кошелька:\n\n\`${process.env.CRYPTO_WALLET}\`\n
+Можно просто кликнуть на номер и он скопируется, далее:\n\n1️⃣ Обязательно проверь, что выбрал *TRC-20*\n2️⃣ Обязательно проверь номер кошелька\n\nКак только оплата будет произведена, нажми "✅ *Я оплатил*"`, {
+        parse_mode: 'Markdown',
+        reply_markup: new InlineKeyboard().text('✅ Я оплатил', 'check_6m')
+    })
+})
 
-bot.callbackQuery('plan_ru_1_card', async (ctx) => {
-    await ctx.conversation.enter('collectEmail', {
-        months: 1,
-        offerId: process.env.LAVA_1_MONTH_OFFER_ID,
-        currency: 'RUB'
-    });
-});
-
-bot.callbackQuery('plan_3_card', async (ctx) => {
-    await ctx.conversation.enter('collectEmail', {
-        months: 3,
-        offerId: process.env.LAVA_3_MONTH_OFFER_ID,
-        currency: 'USD',
-        paymentMethod: 'STRIPE'
-    });
-});
-
-bot.callbackQuery('plan_ru_3_card', async (ctx) => {
-    await ctx.conversation.enter('collectEmail', {
-        months: 3,
-        offerId: process.env.LAVA_3_MONTH_OFFER_ID,
-        currency: 'RUB',
-        paymentMethod: 'STRIPE'
-    });
-});
+bot.callbackQuery('plan_infinity_trc', async (ctx) => {
+    await ctx.reply(`📌 Отправь *150 USDT* в сети *TRC-20* (блокчейн *TRON*) по следующему номеру кошелька:\n\n\`${process.env.CRYPTO_WALLET}\`\n
+Можно просто кликнуть на номер и он скопируется, далее:\n\n1️⃣ Обязательно проверь, что выбрал *TRC-20*\n2️⃣ Обязательно проверь номер кошелька\n\nКак только оплата будет произведена, нажми "✅ *Я оплатил*"`, {
+        parse_mode: 'Markdown',
+        reply_markup: new InlineKeyboard().text('✅ Я оплатил', 'check_infinity')
+    })
+})
 
 bot.callbackQuery('plan_1_card_mir', async (ctx) => {
     await ctx.conversation.enter('collectEmail', {
@@ -212,179 +211,37 @@ bot.callbackQuery('plan_3_card_mir', async (ctx) => {
     });
 });
 
-// bot.callbackQuery('plan_1_card_mir', async (ctx) => {
-//     try {
-//         await ctx.reply('⏳ Генерируем ссылку для оплаты...')
-//         const response = await post(
-//             'https://gate.lava.top/api/v2/invoice',
-//             {
-//                 email: "client@gmail.com",
-//                 offerId: process.env.LAVA_1_MONTH_OFFER_ID,
-//                 currency: "RUB",
-//                 paymentMethod: "BANK131"
-//             },
-//             {
-//                 headers: {
-//                     'X-Api-Key': process.env.LAVA_API_KEY,
-//                     'Content-Type': 'application/json',
-//                 },
-//             }
-//         );
-//
-//         const {paymentUrl, id: paymentId} = response.data;
-//
-//         await ctx.reply('Нажмите, чтобы оплатить(как только транзакция будет успешной, я пришлю ссылку на канал):', {
-//             reply_markup: new InlineKeyboard().webApp("💳 Оплатить сейчас", {url: paymentUrl})
-//         });
-//
-//         const expireDate = new Date()
-//         expireDate.setMonth(expireDate.getMonth() + 1)
-//
-//         await supabase
-//             .from('subscriptions')
-//             .insert([{
-//                 telegram_id: ctx.from.id,
-//                 username: ctx.from.username ?? null,
-//                 expire_date: expireDate.toISOString(),
-//                 payment_id: paymentId
-//             }])
-//
-//     } catch (err) {
-//         console.log(err)
-//     }
-// });
-//
-// bot.callbackQuery('plan_3_card_mir', async (ctx) => {
-//     try {
-//         await ctx.reply('⏳ Генерируем ссылку для оплаты...')
-//         const response = await post(
-//             'https://gate.lava.top/api/v2/invoice',
-//             {
-//                 email: "client@gmail.com",
-//                 offerId: process.env.LAVA_3_MONTH_OFFER_ID,
-//                 currency: "RUB",
-//                 paymentMethod: "BANK131"
-//             },
-//             {
-//                 headers: {
-//                     'X-Api-Key': process.env.LAVA_API_KEY,
-//                     'Content-Type': 'application/json',
-//                 },
-//             }
-//         );
-//
-//         const {paymentUrl, id: paymentId} = response.data;
-//
-//         await ctx.reply('Нажмите, чтобы оплатить(как только транзакция будет успешной, я пришлю ссылку на канал):', {
-//             reply_markup: new InlineKeyboard().webApp("💳 Оплатить сейчас", {url: paymentUrl})
-//         });
-//
-//         const expireDate = new Date()
-//         expireDate.setMonth(expireDate.getMonth() + 3)
-//
-//         await supabase
-//             .from('subscriptions')
-//             .insert([{
-//                 telegram_id: ctx.from.id,
-//                 username: ctx.from.username ?? null,
-//                 expire_date: expireDate.toISOString(),
-//                 payment_id: paymentId
-//             }])
-//
-//     } catch (err) {
-//         console.log(err)
-//     }
-// });
-//
-// bot.callbackQuery('plan_1_card', async (ctx) => {
-//     try {
-//         await ctx.reply('⏳ Генерируем ссылку для оплаты...')
-//         const response = await post(
-//             'https://gate.lava.top/api/v2/invoice',
-//             {
-//                 email: "client@gmail.com",
-//                 offerId: process.env.LAVA_1_MONTH_OFFER_ID,
-//                 currency: "USD",
-//                 paymentMethod: "STRIPE"
-//             },
-//             {
-//                 headers: {
-//                     'X-Api-Key': process.env.LAVA_API_KEY,
-//                     'Content-Type': 'application/json',
-//                 },
-//             }
-//         );
-//
-//         const {paymentUrl, id: paymentId} = response.data;
-//
-//         await ctx.reply('Нажмите, чтобы оплатить(как только транзакция будет успешной, я пришлю ссылку на канал):', {
-//             reply_markup: new InlineKeyboard().webApp("💳 Оплатить сейчас", {url: paymentUrl})
-//         });
-//
-//         const expireDate = new Date()
-//         expireDate.setMonth(expireDate.getMonth() + 1)
-//
-//         await supabase
-//             .from('subscriptions')
-//             .insert([{
-//                 telegram_id: ctx.from.id,
-//                 username: ctx.from.username ?? null,
-//                 expire_date: expireDate.toISOString(),
-//                 payment_id: paymentId
-//             }])
-//
-//     } catch (err) {
-//         console.log(err)
-//     }
-// });
-//
-// bot.callbackQuery('plan_3_card', async (ctx) => {
-//     try {
-//         await ctx.reply('⏳ Генерируем ссылку для оплаты...')
-//         const response = await post(
-//             'https://gate.lava.top/api/v2/invoice',
-//             {
-//                 email: "client@gmail.com",
-//                 offerId: process.env.LAVA_3_MONTH_OFFER_ID,
-//                 currency: "USD",
-//                 paymentMethod: "STRIPE"
-//             },
-//             {
-//                 headers: {
-//                     'X-Api-Key': process.env.LAVA_API_KEY,
-//                     'Content-Type': 'application/json',
-//                 },
-//             }
-//         );
-//
-//         const {paymentUrl, id: paymentId} = response.data;
-//
-//         await ctx.reply('Нажмите, чтобы оплатить(как только транзакция будет успешной, я пришлю ссылку на канал):', {
-//             reply_markup: new InlineKeyboard().webApp("💳 Оплатить сейчас", {url: paymentUrl})
-//         });
-//
-//         const expireDate = new Date()
-//         expireDate.setMonth(expireDate.getMonth() + 3)
-//
-//         await supabase
-//             .from('subscriptions')
-//             .insert([{
-//                 telegram_id: ctx.from.id,
-//                 username: ctx.from.username ?? null,
-//                 expire_date: expireDate.toISOString(),
-//                 payment_id: paymentId
-//             }])
-//
-//     } catch (err) {
-//         console.log(err)
-//     }
-// });
+bot.callbackQuery('plan_6_card_mir', async (ctx) => {
+    await ctx.conversation.enter('collectEmail', {
+        months: 6,
+        offerId: process.env.LAVA_3_MONTH_OFFER_ID,
+        currency: 'RUB',
+        paymentMethod: 'BANK131'
+    });
+});
+
+bot.callbackQuery('plan_infinity_card_mir', async (ctx) => {
+    await ctx.conversation.enter('collectEmail', {
+        months: 999,
+        offerId: process.env.LAVA_3_MONTH_OFFER_ID,
+        currency: 'RUB',
+        paymentMethod: 'BANK131'
+    });
+});
 
 bot.callbackQuery('check_1m', async (ctx) => {
     await ctx.conversation.enter('handleTxid', ctx);
 });
 
 bot.callbackQuery('check_3m', async (ctx) => {
+    await ctx.conversation.enter('handleTxid', ctx);
+});
+
+bot.callbackQuery('check_6m', async (ctx) => {
+    await ctx.conversation.enter('handleTxid', ctx);
+});
+
+bot.callbackQuery('check_infinity', async (ctx) => {
     await ctx.conversation.enter('handleTxid', ctx);
 });
 
@@ -436,7 +293,28 @@ async function handleTxid(conversation, ctx, tariff) {
         const contract = txInfo.raw_data.contract[0];
         let amount;
         let recipientMatches = false;
-        const cost = tariff.match === 'check_1m' ? Number(process.env.PRICE_1_MONTH) : Number(process.env.PRICE_3_MONTH);
+
+        let cost;
+        switch (tariff.match) {
+            case 'check_1m':
+                cost = Number(process.env.PRICE_1_MONTH);
+                break;
+
+            case 'check_3m':
+                cost = Number(process.env.PRICE_3_MONTH);
+                break;
+
+            case 'check_6m':
+                cost = Number(50);
+                break;
+
+            case 'check_infinity':
+                cost = Number(150);
+                break;
+
+            default:
+                cost = 0;
+        }
 
         if (contract.type === 'TriggerSmartContract') {
             const {data} = contract.parameter.value;
@@ -495,19 +373,27 @@ async function handleTxid(conversation, ctx, tariff) {
                 `✅ Оплата подтверждена! Вот твоя *одноразовая ссылка*:\n\n${invite.invite_link}`,{parse_mode:'Markdown'}
             );
 
-            const expireDate = new Date()
-            const month = tariff.match === 'check_1m' ? 1 : 3;
-            expireDate.setMonth(expireDate.getMonth() + month)
+            const monthsMap = {
+                check_1m: 1,
+                check_3m: 3,
+                check_6m: 6,
+                check_infinity: 999
+            };
+
+            const months = monthsMap[tariff.match];
+            const expireDate = new Date();
+            expireDate.setMonth(expireDate.getMonth() + months);
+            const expireValue = expireDate.toISOString();
 
             await supabase
                 .from('subscriptions')
                 .insert([{
                     telegram_id: ctx.from.id,
-                    status:'paid',
+                    status: 'paid',
                     username: ctx.from.username ?? null,
-                    invite_link:invite.invite_link,
-                    expire_date: expireDate.toISOString()
-                }])
+                    invite_link: invite.invite_link,
+                    expire_date: expireValue
+                }]);
 
             await supabase
                 .from('expired_txid')

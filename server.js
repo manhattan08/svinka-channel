@@ -1,6 +1,6 @@
 require('dotenv').config()
 const express = require('express')
-const { webhookCallback, InlineKeyboard} = require('grammy')
+const {webhookCallback, InlineKeyboard} = require('grammy')
 const cors = require('cors')
 const cron = require('node-cron')
 const bot = require("./bot");
@@ -16,12 +16,12 @@ const secretPath = `/bot${process.env.BOT_TOKEN}`
 app.use(secretPath, webhookCallback(bot, 'express'))
 
 app.post('/webhook', async (req, res) => {
-    try{
+    try {
         const {eventType, contractId} = req.body;
 
-        if(eventType !== 'payment.success') return res.status(200).json({success:false});
+        if (eventType !== 'payment.success') return res.status(200).json({success: false});
 
-        const { data: subscription, error } = await supabase
+        const {data: subscription, error} = await supabase
             .from('subscriptions')
             .select('telegram_id')
             .eq('payment_id', contractId)
@@ -29,7 +29,7 @@ app.post('/webhook', async (req, res) => {
 
         if (error || !subscription) {
             console.error('Subscription not found or Supabase error:', error)
-            return res.status(404).json({ success: false, error: 'Subscription not found' })
+            return res.status(404).json({success: false, error: 'Subscription not found'})
         }
 
         const invite = await bot.api.createChatInviteLink(process.env.PRIVATE_CHANNEL_ID, {
@@ -39,12 +39,12 @@ app.post('/webhook', async (req, res) => {
 
         await bot.api.sendMessage(
             subscription.telegram_id,
-            `✅ Оплата подтверждена! Вот твоя *одноразовая ссылка*:\n\n ${invite.invite_link}`,{parse_mode:'Markdown'}
+            `✅ Оплата подтверждена! Вот твоя *одноразовая ссылка*:\n\n ${invite.invite_link}`, {parse_mode: 'Markdown'}
         )
 
         await supabase
             .from('subscriptions')
-            .update({ status: 'paid', invite_link:invite.invite_link})
+            .update({status: 'paid', invite_link: invite.invite_link})
             .eq('payment_id', contractId)
 
         setTimeout(async () => {
@@ -58,73 +58,67 @@ app.post('/webhook', async (req, res) => {
             }
         }, 30 * 1000)
 
-        return res.status(200).json({success:true});
+        return res.status(200).json({success: true});
     } catch (e) {
         console.log(e)
-        return res.status(500).json({success:false});
+        return res.status(500).json({success: false});
     }
 })
 
 app.post('/webhook/tribute', async (req, res) => {
     console.log('TRIBUTE YES')
-    // try{
-    //     const {eventType, contractId} = req.body;
-    //
-    //     if(eventType !== 'payment.success') return res.status(200).json({success:false});
-    //
-    //     const { data: subscription, error } = await supabase
-    //         .from('subscriptions')
-    //         .select('telegram_id')
-    //         .eq('payment_id', contractId)
-    //         .single()
-    //
-    //     if (error || !subscription) {
-    //         console.error('Subscription not found or Supabase error:', error)
-    //         return res.status(404).json({ success: false, error: 'Subscription not found' })
-    //     }
-    //
-    //     const invite = await bot.api.createChatInviteLink(process.env.PRIVATE_CHANNEL_ID, {
-    //         member_limit: 1,
-    //         creates_join_request: false,
-    //     })
-    //
-    //     await bot.api.sendMessage(
-    //         subscription.telegram_id,
-    //         `✅ Оплата подтверждена! Вот твоя *одноразовая ссылка*:\n\n ${invite.invite_link}`,{parse_mode:'Markdown'}
-    //     )
-    //
-    //     await supabase
-    //         .from('subscriptions')
-    //         .update({ status: 'paid', invite_link:invite.invite_link})
-    //         .eq('payment_id', contractId)
-    //
-    //     setTimeout(async () => {
-    //         try {
-    //             await bot.api.revokeChatInviteLink(
-    //                 process.env.PRIVATE_CHANNEL_ID,
-    //                 invite.invite_link
-    //             )
-    //         } catch (err) {
-    //             console.error('Revoke failed:', err)
-    //         }
-    //     }, 30 * 1000)
-    //
-    //     return res.status(200).json({success:true});
-    // } catch (e) {
-    //     console.log(e)
-    //     return res.status(500).json({success:false});
-    // }
+    console.log(req.body);
+
+    try {
+        const {name, payload} = req.body;
+
+        if (name !== 'new_subscription') return res.status(200).json({success: false});
+
+        const {telegram_user_id} = payload;
+
+        // const invite = await bot.api.createChatInviteLink(process.env.PRIVATE_CHANNEL_ID, {
+        //     member_limit: 1,
+        //     creates_join_request: false,
+        // })
+        //
+        // await bot.api.sendMessage(
+        //     telegram_user_id,
+        //     `✅ Оплата подтверждена! Вот твоя *одноразовая ссылка*:\n\n ${invite.invite_link}`, {parse_mode: 'Markdown'}
+        // )
+
+        const { data: lastSub, error: findError } = await supabase
+            .from('subscriptions')
+            .select('id')
+            .eq('telegram_id', telegram_user_id)
+            .order('id', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (findError || !lastSub) {
+            console.log('subscription not found');
+            return res.status(404).json({ success: false });
+        }
+
+        await supabase
+            .from('subscriptions')
+            .update({ status: 'paid' })
+            .eq('id', lastSub.id);
+
+        return res.status(200).json({success:true});
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json({success: false});
+    }
 })
 
-
 app.get('/ping', (req, res) => {
-    res.status(200).json({ message: 'pong' });
+    res.status(200).json({message: 'pong'});
 });
 
 cron.schedule('0 */12 * * *', async () => {
     try {
         const now = new Date().toISOString();
-        const { data: expired, error } = await supabase
+        const {data: expired, error} = await supabase
             .from('subscriptions')
             .select('id, telegram_id, status')
             .lt('expire_date', now);
@@ -136,16 +130,16 @@ cron.schedule('0 */12 * * *', async () => {
         if (!expired || expired.length === 0) return;
 
         const paidExpired = expired.filter(r => r.status === 'paid');
-        const toPurgeIds  = expired.filter(r => r.status !== 'paid').map(r => r.id);
+        const toPurgeIds = expired.filter(r => r.status !== 'paid').map(r => r.id);
 
         if (toPurgeIds.length) {
-             await supabase
+            await supabase
                 .from('subscriptions')
                 .delete()
                 .in('id', toPurgeIds);
         }
 
-        for (const { telegram_id, id } of paidExpired) {
+        for (const {telegram_id, id} of paidExpired) {
             try {
                 try {
                     await bot.api.sendMessage(
@@ -156,7 +150,8 @@ cron.schedule('0 */12 * * *', async () => {
                                 .text('📝 Оформить подписку', 'subscribe'),
                         }
                     );
-                } catch (e){}
+                } catch (e) {
+                }
 
                 await bot.api.banChatMember(process.env.PRIVATE_CHANNEL_ID, telegram_id)
                 await bot.api.unbanChatMember(process.env.PRIVATE_CHANNEL_ID, telegram_id)

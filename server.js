@@ -74,7 +74,7 @@ app.post('/webhook/tribute', async (req, res) => {
 
         if (name !== 'new_subscription') return res.status(200).json({success: false});
 
-        const {telegram_user_id} = payload;
+        const {telegram_user_id, expires_at} = payload;
 
         // const invite = await bot.api.createChatInviteLink(process.env.PRIVATE_CHANNEL_ID, {
         //     member_limit: 1,
@@ -102,7 +102,7 @@ app.post('/webhook/tribute', async (req, res) => {
                     status: 'paid',
                     username: null,
                     invite_link: null,
-                    expire_date: null
+                    expire_date: new Date(expires_at)
                 }]);
 
             return res.status(200).json({ success: true, created: true });
@@ -110,7 +110,7 @@ app.post('/webhook/tribute', async (req, res) => {
 
         await supabase
             .from('subscriptions')
-            .update({ status: 'paid' })
+            .update({ status: 'paid', expires_date: new Date(expires_at) })
             .eq('id', lastSub.id);
 
         return res.status(200).json({success:true});

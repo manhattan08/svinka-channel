@@ -6,6 +6,7 @@ const {post} = require("axios");
 const supabase = require("./supabase");
 
 const tronWeb = new TronWeb({fullHost: 'https://api.trongrid.io'});
+const INVITE_REVOKE_SECONDS = Math.max(5, Number(60));
 
 const bot = new Bot(process.env.BOT_TOKEN)
 
@@ -366,7 +367,8 @@ async function handleTxid(conversation, ctx, tariff) {
         if (recipientMatches && amount >= cost) {
             const invite = await bot.api.createChatInviteLink(process.env.PRIVATE_CHANNEL_ID, {
                 member_limit: 1,
-                creates_join_request: false
+                creates_join_request: false,
+                expire_date: Math.floor(Date.now() / 1000) + INVITE_REVOKE_SECONDS
             });
 
             await ctx.reply(
@@ -408,7 +410,7 @@ async function handleTxid(conversation, ctx, tariff) {
                 } catch (err) {
                     console.error('Revoke failed:', err)
                 }
-            }, 30 * 1000)
+            }, INVITE_REVOKE_SECONDS * 1000)
         } else {
             await ctx.reply(
                 `❌ Транзакция не соответствует условиям: проверь адрес получателя и что сумма ≥ ${cost}.`, {

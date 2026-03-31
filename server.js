@@ -8,7 +8,6 @@ const supabase = require("./supabase");
 
 const app = express()
 const PORT = process.env.PORT || 3000
-const INVITE_REVOKE_SECONDS = Math.max(5, Number(60))
 
 app.use(cors())
 app.use(express.json())
@@ -36,7 +35,6 @@ app.post('/webhook', async (req, res) => {
         const invite = await bot.api.createChatInviteLink(process.env.PRIVATE_CHANNEL_ID, {
             member_limit: 1,
             creates_join_request: false,
-            expire_date: Math.floor(Date.now() / 1000) + INVITE_REVOKE_SECONDS,
         })
 
         await bot.api.sendMessage(
@@ -58,7 +56,7 @@ app.post('/webhook', async (req, res) => {
             } catch (err) {
                 console.error('Revoke failed:', err)
             }
-        }, INVITE_REVOKE_SECONDS * 1000)
+        }, 30 * 1000)
 
         return res.status(200).json({success: true});
     } catch (e) {

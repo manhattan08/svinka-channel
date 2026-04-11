@@ -9,6 +9,37 @@ const supabase = require("./supabase");
 const app = express()
 const PORT = process.env.PORT || 3000
 
+/** Tribute: new_subscription — первая покупка; renewed_subscription — продление (раньше не обрабатывалось → expire_date устаревал и cron кикал). */
+async function upsertTributeSubscription(telegram_user_id, expires_at) {
+    const expireDate = new Date(expires_at).toISOString()
+    const {data: existing, error: selErr} = await supabase
+        .from('subscriptions')
+        .select('id')
+        .eq('telegram_id', telegram_user_id)
+        .limit(1)
+
+    if (selErr) throw selErr
+
+    if (existing && existing.length > 0) {
+        const {error} = await supabase
+            .from('subscriptions')
+            .update({status: 'paid', expire_date: expireDate})
+            .eq('telegram_id', telegram_user_id)
+        if (error) throw error
+    } else {
+        const {error} = await supabase
+            .from('subscriptions')
+            .insert([{
+                telegram_id: telegram_user_id,
+                status: 'paid',
+                username: null,
+                invite_link: null,
+                expire_date: expireDate
+            }])
+        if (error) throw error
+    }
+}
+
 app.use(cors())
 app.use(express.json())
 
@@ -74,30 +105,14 @@ app.post('/webhook/tribute', async (req, res) => {
 
         if (name === 'new_subscription') {
             console.log('NEW USER')
-            const {telegram_user_id, expires_at} = payload;
+            const {telegram_user_id, expires_at} = payload
+            await upsertTributeSubscription(telegram_user_id, expires_at)
+            return res.status(200).json({success: true, created: true})
 
-            // const invite = await bot.api.createChatInviteLink(process.env.PRIVATE_CHANNEL_ID, {
-            //     member_limit: 1,
-            //     creates_join_request: false,
-            // })
-            //
-            // await bot.api.sendMessage(
-            //     telegram_user_id,
-            //     `✅ Оплата подтверждена! Вот твоя *одноразовая ссылка*:\n\n ${invite.invite_link}`, {parse_mode: 'Markdown'}
-            // )
-
-            await supabase
-                .from('subscriptions')
-                .insert([{
-                    telegram_id: telegram_user_id,
-                    status: 'paid',
-                    username: null,
-                    invite_link: null,
-                    expire_date: new Date(expires_at)
-                }]);
-
-            return res.status(200).json({success: true, created: true});
-
+        } else if (name === 'renewed_subscription') {
+            const {telegram_user_id, expires_at} = payload
+            await upsertTributeSubscription(telegram_user_id, expires_at)
+            return res.status(200).json({success: true, renewed: true})
 
         } else if (name === 'cancelled_subscription') {
             try {

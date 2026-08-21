@@ -1,0 +1,268 @@
+openapi: 3.0.3
+info:
+  title: Telegram Subscription Webhook API
+  version: 1.0.0
+  description: |
+    HTTP endpoints for Telegram bot updates, payment-provider webhooks, Tribute
+    subscription lifecycle events, and service health checks.
+    
+    Webhook endpoints are publicly exposed by the application. The Telegram bot
+    webhook uses the bot token in the URL as a shared-secret path segment; the
+    other webhook endpoints do not perform authentication or signature validation.
+servers:
+  - url: /
+    description: Current application host
+paths:
+  /bot{BOT_TOKEN}:
+    post:
+      operationId: receiveTelegramUpdate
+      summary: Telegram bot webhook
+      description: |
+        Receives a Telegram Bot API Update through grammY's Express webhook
+        callback. Bot command and callback handlers are defined by the application.
+        No custom JSON response schema is defined; a successful callback normally
+        acknowledges the update without an application response body.
+      parameters:
+        - $ref: '#/components/parameters/BotToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TelegramUpdate'
+            description: Telegram Bot API update delivered to the webhook.
+      responses:
+        '200':
+          description: Update accepted by the webhook callback. The application defines no custom response body.
+        '400':
+          description: Malformed request rejected by the webhook framework.
+        '500':
+          description: Webhook processing error.
+
+  /webhook:
+    post:
+      operationId: processPaymentWebhook
+      summary: Process successful payment webhook
+      description: |
+        Handles payment-provider callbacks. Only `eventType=payment.success` is
+        processed. The `contractId` locates a subscription by payment ID; on a
+        successful match the application issues a one-use Telegram channel invite,
+        notifies the subscriber, and marks the subscription paid. Other event types
+        return HTTP 200 with `success=false`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentWebhookRequest'
+      responses:
+        '200':
+          description: Webhook was handled, including unsupported event types or a missing subscription.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentWebhookResponse'
+              examples:
+                processed:
+                  summary: Payment processed
+                  value:
+                    success: true
+                unsupportedEvent:
+                  summary: Event ignored
+                  value:
+                    success: false
+                subscriptionNotFound:
+                  summary: Matching subscription was not found
+                  value:
+                    success: false
+                    error: Subscription not found
+        '400':
+          description: Malformed request rejected by the server framework.
+        '500':
+          description: Unexpected webhook processing error.
+
+  /webhook/tribute:
+    post:
+      operationId: processTributeWebhook
+      summary: Process Tribute subscription webhook
+      description: |
+        Handles Tribute subscription lifecycle callbacks. `new_subscription` and
+        `renewed_subscription` upsert a paid subscription. `cancelled_subscription`
+        notifies/removes the Telegram user and deletes the subscription. Unknown
+        event names return `success=true` without further processing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TributeWebhookRequest'
+            examples:
+              newSubscription:
+                value:
+                  name: new_subscription
+                  payload:
+                    telegram_user_id: '123456789'
+                    expires_at: '2025-12-31T23:59:59Z'
+              cancellation:
+                value:
+                  name: cancelled_subscription
+                  payload:
+                    telegram_user_id: '123456789'
+      responses:
+        '200':
+          description: Webhook handling completed or an unknown event was ignored.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TributeWebhookResponse'
+              examples:
+                created:
+                  value:
+                    success: true
+                    created: true
+                renewed:
+                  value:
+                    success: true
+                    renewed: true
+                ignored:
+                  value:
+                    success: true
+        '400':
+          description: Malformed request rejected by the server framework.
+        '500':
+          description: Unexpected webhook processing error.
+
+  /ping:
+    get:
+      operationId: ping
+      summary: Health check
+      description: Returns a simple liveness response.
+      responses:
+        '200':
+          description: Service is live.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PingResponse'
+              example:
+                message: pong
+
+components:
+  parameters:
+    BotToken:
+      name: BOT_TOKEN
+      in: path
+      required: true
+      description: Telegram bot token used as the webhook secret path segment; sourced from the BOT_TOKEN environment variable.
+      schema:
+        type: string
+
+  schemas:
+    TelegramUpdate:
+      type: object
+      required:
+        - update_id
+      properties:
+        update_id:
+          type: integer
+          format: int64
+          description: Telegram Update identifier.
+        message:
+          type: object
+          description: Telegram message update, when present.
+          additionalProperties: true
+        callback_query:
+          type: object
+          description: Telegram callback query update, when present.
+          additionalProperties: true
+      additionalProperties: true
+      description: Telegram Bot API Update object. Other Telegram update variants may also be delivered.
+
+    PaymentWebhookRequest:
+      type: object
+      required:
+        - eventType
+        - contractId
+      properties:
+        eventType:
+          type: string
+          enum:
+            - payment.success
+          description: Payment event type. Values other than payment.success are ignored with success=false.
+        contractId:
+          type: string
+          description: Payment contract identifier used to locate the subscription by payment_id.
+      additionalProperties: true
+
+    PaymentWebhookResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          description: Whether webhook processing succeeded.
+        error:
+          type: string
+          description: Error message when the matching subscription is not found. Currently Subscription not found.
+      additionalProperties: false
+
+    TributeWebhookRequest:
+      type: object
+      required:
+        - name
+        - payload
+      properties:
+        name:
+          type: string
+          enum:
+            - new_subscription
+            - renewed_subscription
+            - cancelled_subscription
+          description: Tribute subscription lifecycle event name.
+        payload:
+          $ref: '#/components/schemas/TributePayload'
+      additionalProperties: true
+      description: For supported events, payload.telegram_user_id is required by application behavior. expires_at is required for new_subscription and renewed_subscription.
+
+    TributePayload:
+      type: object
+      properties:
+        telegram_user_id:
+          oneOf:
+            - type: string
+            - type: integer
+              format: int64
+          description: Telegram user identifier. Required by application behavior for supported events, though not explicitly validated.
+        expires_at:
+          type: string
+          description: Subscription expiration timestamp. Required for new_subscription and renewed_subscription; converted to ISO format.
+      additionalProperties: true
+
+    TributeWebhookResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          description: Whether webhook handling completed without an outer exception.
+        created:
+          type: boolean
+          description: True for a successfully processed new_subscription event.
+        renewed:
+          type: boolean
+          description: True for a successfully processed renewed_subscription event.
+      additionalProperties: false
+
+    PingResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          enum:
+            - pong
+          description: Fixed health-check value.
+      additionalProperties: false
